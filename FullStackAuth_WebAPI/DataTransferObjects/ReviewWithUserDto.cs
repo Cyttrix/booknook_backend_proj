@@ -4,12 +4,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FullStackAuth_WebAPI.DataTransferObjects
 {
-    public class CarWithUserDto
+    public class ReviewWithUserDto
     {
         public int Id { get; set; }
-        public string Make { get; set; }
-        public string Model { get; set; }
-        public int Year { get; set; }
-        public UserForDisplayDto Owner { get; set; }
+        public string BookId { get; set; }
+        public string Text { get; set; }
+        public double Rating { get; set; }
+        public UserForDisplayDto User { get; set; }
     }
 }
