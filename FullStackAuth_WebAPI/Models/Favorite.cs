@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
 namespace FullStackAuth_WebAPI.Models
@@ -22,5 +22,6 @@ namespace FullStackAuth_WebAPI.Models
         public string UserId { get; set; }
 
         public User User { get; set; }
+
     }
 }

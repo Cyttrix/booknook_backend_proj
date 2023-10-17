@@ -4,24 +4,23 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FullStackAuth_WebAPI.Models
 {
-    public class Review
+    public class Car
     {
         [Key]
         public int Id { get; set; }
 
         [Required]
-        public string BookId { get; set; }
+        public string Make { get; set; }
 
         [Required]
-        public string Text { get; set; }
+        public string Model { get; set; }
 
         [Required]
-        public double Rating { get; set; }
+        public int Year { get; set; }
 
-        [ForeignKey("User")]
-        public string UserId {  get; set; }
+        [ForeignKey("Owner")]
+        public string OwnerId { get; set; }
 
-        public User User { get; set; }
-
+        public User Owner { get; set; }
     }
 }

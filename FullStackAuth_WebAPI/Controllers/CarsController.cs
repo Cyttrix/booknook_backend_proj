@@ -15,18 +15,18 @@ namespace FullStackAuth_WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BookDetailsController : ControllerBase
+    public class CarsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public BookDetailsController(ApplicationDbContext context)
+        public CarsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
         // GET: api/cars
         [HttpGet]
-        public IActionResult GetAllReviews()
+        public IActionResult GetAllCars()
         {
             try
             {
@@ -34,23 +34,23 @@ namespace FullStackAuth_WebAPI.Controllers
                 //var cars = _context.Cars.Include(c => c.Owner).ToList();
 
                 //Retrieve all cars from the database, using Dtos
-                var reviews = _context.Reviews.Select(c => new ReviewWithUserDto
+                var cars = _context.Cars.Select(c => new CarWithUserDto
                 {
                     Id = c.Id,
-                    BookId = c.BookId,
-                    Text = c.Text,
-                    Rating = c.Rating,
-                    User = new UserForDisplayDto
+                    Make = c.Make,
+                    Model = c.Model,
+                    Year = c.Year,
+                    Owner = new UserForDisplayDto
                     {
-                        Id = c.User.Id,
-                        FirstName = c.User.FirstName,
-                        LastName = c.User.LastName,
-                        UserName = c.User.UserName,
+                        Id = c.Owner.Id,
+                        FirstName = c.Owner.FirstName,
+                        LastName = c.Owner.LastName,
+                        UserName = c.Owner.UserName,
                     }
                 }).ToList();
 
                 // Return the list of cars as a 200 OK response
-                return StatusCode(200, reviews);
+                return StatusCode(200, cars);
             }
             catch (Exception ex)
             {
@@ -69,10 +69,10 @@ namespace FullStackAuth_WebAPI.Controllers
                 string userId = User.FindFirstValue("id");
 
                 // Retrieve all cars that belong to the authenticated user, including the owner object
-                var reviews = _context.Reviews.Where(c => c.UserId.Equals(userId));
+                var cars = _context.Cars.Where(c => c.OwnerId.Equals(userId));
 
                 // Return the list of cars as a 200 OK response
-                return StatusCode(200, reviews);
+                return StatusCode(200, cars);
             }
             catch (Exception ex)
             {
@@ -88,16 +88,16 @@ namespace FullStackAuth_WebAPI.Controllers
             try
             {
                 // Retrieve the car with the specified ID, including the owner object
-                var review = _context.Reviews.Include(c => c.User).FirstOrDefault(c => c.Id == id);
+                var car = _context.Cars.Include(c => c.Owner).FirstOrDefault(c => c.Id == id);
 
                 // If the car does not exist, return a 404 not found response
-                if (review == null)
+                if (car == null)
                 {
                     return NotFound();
                 }
 
                 // Return the car as a 200 OK response
-                return StatusCode(200, review);
+                return StatusCode(200, car);
             }
             catch (Exception ex)
             {
@@ -108,7 +108,7 @@ namespace FullStackAuth_WebAPI.Controllers
 
         // POST api/cars
         [HttpPost, Authorize]
-        public IActionResult Post([FromBody] Review data)
+        public IActionResult Post([FromBody] Car data)
         {
             try
             {
@@ -122,10 +122,10 @@ namespace FullStackAuth_WebAPI.Controllers
                 }
 
                 // Set the car's owner ID  the authenticated user's ID we found earlier
-                data.UserId = userId;
+                data.OwnerId = userId;
 
                 // Add the car to the database and save changes
-                _context.Reviews.Add(data);
+                _context.Cars.Add(data);
                 if (!ModelState.IsValid)
                 {
                     // If the car model state is invalid, return a 400 bad request response with the model state errors
@@ -145,14 +145,14 @@ namespace FullStackAuth_WebAPI.Controllers
 
         // PUT api/cars/5
         [HttpPut("{id}"), Authorize]
-        public IActionResult Put(int id, [FromBody] Review data)
+        public IActionResult Put(int id, [FromBody] Car data)
         {
             try
             {
                 // Find the car to be updated
-                Review review = _context.Reviews.Include(c => c.User).FirstOrDefault(c => c.Id == id);
+                Car car = _context.Cars.Include(c => c.Owner).FirstOrDefault(c => c.Id == id);
 
-                if (review == null)
+                if (car == null)
                 {
                     // Return a 404 Not Found error if the car with the specified ID does not exist
                     return NotFound();
@@ -160,19 +160,18 @@ namespace FullStackAuth_WebAPI.Controllers
 
                 // Check if the authenticated user is the owner of the car
                 var userId = User.FindFirstValue("id");
-                if (string.IsNullOrEmpty(userId) || review.UserId != userId)
+                if (string.IsNullOrEmpty(userId) || car.OwnerId != userId)
                 {
                     // Return a 401 Unauthorized error if the authenticated user is not the owner of the car
                     return Unauthorized();
                 }
 
-                // Update the review properties
-                review.UserId = userId;
-                review.User = _context.Users.Find(userId);
-                review.Text = data.Text;
-                review.Rating = data.Rating;
-                review.BookId = data.BookId;
-                review.Id = data.Id;
+                // Update the car properties
+                car.OwnerId = userId;
+                car.Owner = _context.Users.Find(userId);
+                car.Make = data.Make;
+                car.Model = data.Model;
+                car.Year = data.Year;
                 if (!ModelState.IsValid)
                 {
                     // Return a 400 Bad Request error if the request data is invalid
@@ -181,7 +180,7 @@ namespace FullStackAuth_WebAPI.Controllers
                 _context.SaveChanges();
 
                 // Return a 201 Created status code and the updated car object
-                return StatusCode(201, review);
+                return StatusCode(201, car);
             }
             catch (Exception ex)
             {
@@ -197,23 +196,23 @@ namespace FullStackAuth_WebAPI.Controllers
             try
             {
                 // Find the car to be deleted
-                Review review = _context.Reviews.FirstOrDefault(c => c.Id == id);
-                if (review == null)
+                Car car = _context.Cars.FirstOrDefault(c => c.Id == id);
+                if (car == null)
                 {
-                    // Return a 404 Not Found error if the review with the specified ID does not exist
+                    // Return a 404 Not Found error if the car with the specified ID does not exist
                     return NotFound();
                 }
 
-                // Check if the authenticated user is the owner of the review
+                // Check if the authenticated user is the owner of the car
                 var userId = User.FindFirstValue("id");
-                if (string.IsNullOrEmpty(userId) || review.UserId != userId)
+                if (string.IsNullOrEmpty(userId) || car.OwnerId != userId)
                 {
-                    // Return a 401 Unauthorized error if the authenticated user is not the owner of the review
+                    // Return a 401 Unauthorized error if the authenticated user is not the owner of the car
                     return Unauthorized();
                 }
 
                 // Remove the car from the database
-                _context.Reviews.Remove(review);
+                _context.Cars.Remove(car);
                 _context.SaveChanges();
 
                 // Return a 204 No Content status code
