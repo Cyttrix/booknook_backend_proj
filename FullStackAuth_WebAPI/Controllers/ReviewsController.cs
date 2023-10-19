@@ -3,6 +3,7 @@ using FullStackAuth_WebAPI.DataTransferObjects;
 using FullStackAuth_WebAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -50,7 +51,7 @@ namespace FullStackAuth_WebAPI.Controllers
         }
 
         // GET api/<ReviewsController>/5
-        [HttpGet("{id}")]
+        //[HttpGet("{id}")]
         
 
         // POST api/reviews
@@ -85,10 +86,91 @@ namespace FullStackAuth_WebAPI.Controllers
         }
 
         // PUT api/<ReviewsController>/5
-        
+        [HttpPut("{id}"), Authorize]
+        public IActionResult Put(int id, [FromBody] Review data)
+        {
+            try
+            {
+                // Find the review to be updated
+                Review review = _context.Reviews.Include(r => r.User).FirstOrDefault(r => r.Id == id);
+
+                if (review == null)
+                {
+                    // Return a 404 Not Found error if the review with the specified ID does not exist
+                    return NotFound();
+                }
+
+                // Check if the authenticated user is the user of the review
+                var userId = User.FindFirstValue("id");
+                if (string.IsNullOrEmpty(userId) || review.UserId != userId)
+                {
+                    // Return a 401 Unauthorized error if the authenticated user is not the user of the review
+                    return Unauthorized();
+                }
+
+                // Update the review properties
+                review.UserId = userId;
+                review.User = _context.Users.Find(userId);
+                review.Rating = data.Rating;
+                review.Text = data.Text;
+                review.BookId = data.BookId;
+                if (!ModelState.IsValid)
+                    if (!ModelState.IsValid)
+                {
+                    // Return a 400 Bad Request error if the request data is invalid
+                    return BadRequest(ModelState);
+                }
+                _context.SaveChanges();
+
+                // Return a 201 Created status code and the updated car object
+                return StatusCode(201, review);
+            }
+            catch (Exception ex)
+            {
+                // Return a 500 Internal Server Error with the error message if an exception occurs
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
 
         // DELETE api/<ReviewsController>/5
-       
-        
+
+        [HttpDelete("{id}"), Authorize]
+        public IActionResult DeleteReview(int id)
+        {
+            try
+            {
+                // Find the review to be deleted
+                Review review = _context.Reviews.FirstOrDefault(r => r.Id == id);
+                if (review == null)
+                {
+                    // Return a 404 Not Found error if the review with the specified ID does not exist
+                    return NotFound();
+                }
+
+                // Check if the authenticated user is the user of the review
+                var userId = User.FindFirstValue("id");
+                if (string.IsNullOrEmpty(userId) || review.UserId != userId)
+                {
+                    // Return a 401 Unauthorized error if the authenticated user is not the user of the review
+                    return Unauthorized();
+                }
+
+                // Remove the review from the database
+                _context.Reviews.Remove(review);
+                _context.SaveChanges();
+
+                // Return a 204 No Content status code
+                return StatusCode(204);
+            }
+            catch (Exception ex)
+            {
+                // Return a 500 Internal Server Error with the error message if an exception occurs
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
     }
 }

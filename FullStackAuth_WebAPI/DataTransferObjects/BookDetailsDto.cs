@@ -3,9 +3,9 @@
     public class BookDetailsDto
     {
         public string BookId { get; set; }
+        public List<ReviewWithUserDto> BookReviews { get; set; }
+        public double AverageRating {  get; set; }
+        public bool Favorited {  get; set; }
 
-        public string Title { get; set; }
-
-        public string ThumbnailUrl {  get; set; }
     }
 }
